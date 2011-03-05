@@ -53,9 +53,9 @@
 			this.empty();
 		}
 	
-		var options = o.options = $.extend({}, defaultOptions, {
+		o = $.extend({}, defaultOptions, {
 			easing: show ? 'easeInSine' : 'easeInCirc'
-		}, o.options, {
+		}, o, {
 			finished: show ? null : finished,
 			beforeAnimate: beforeAnimate,
 			/* animation function */
@@ -71,7 +71,7 @@
 					mTop = docHeight - height,
 					/* max left */
 					mLeft = docWidth - width,
-					distance = options.distance * 2,
+					distance = o.distance * 2,
 					distanceY, distanceX, distanceXY, properties = {
 						opacity: show ? 1 : 0
 					},
@@ -86,8 +86,8 @@
 				});
 	
 	
-				if (options.random !== false) {
-					var seed = (Math.random() * options.random) + Math.max(1 - options.random, 0);
+				if (o.random !== false) {
+					var seed = (Math.random() * o.random) + Math.max(1 - o.random, 0);
 	
 					distance *= seed;
 					duration *= seed;
@@ -129,7 +129,7 @@
 				}
 	
 				/* run it */
-				this.delay(delay).animate(properties, duration, options.easing);
+				this.delay(delay).animate(properties, duration, o.easing);
 	
 	
 	
@@ -159,9 +159,9 @@
 			this.css('opacity', 0);
 		}
 	
-		var options = o.options = $.extend({}, defaultOptions, {
+		o = $.extend({}, defaultOptions, {
 			easing: 'easeInOutSine'
-		}, o.options, {
+		}, o, {
 			words: false,
 			wordDelay: 0
 		}, {
@@ -180,19 +180,19 @@
 						Randomize delay if necessary
 						Note, reverse doesn't really matter at this time
 					*/
-				if (options.random !== false && show) {
+				if (o.random !== false && show) {
 					var randomDelay = (Math.random() * text.length * interval) * interval;
 	
 					/* The higher the random % the slower */
-					delay = (randomDelay / (2 - options.random)) + options.wordDelay;
-					options.wordDelay = delay;
+					delay = (randomDelay / (2 - o.random)) + o.wordDelay;
+					o.wordDelay = delay;
 				}
 	
 	
 				/* run it */
 				this.delay(delay).animate({
 					opacity: show
-				}, 10, options.easing);
+				}, 10, o.easing);
 			}
 		});
 	
@@ -234,9 +234,9 @@
 			this.empty();
 		}
 	
-		var options = o.options = $.extend({}, defaultOptions, {
+		o = $.extend({}, defaultOptions, {
 			easing: show ? 'easeInSine' : 'easeInCirc'
-		}, o.options, {
+		}, o, {
 			finished: show ? null : finished,
 			beforeAnimate: beforeAnimate,
 			/* animation function */
@@ -262,43 +262,43 @@
 					properties.top = offset.top;
 					properties.left = offset.left;
 					properties.opacity = 1;
-					if (options.direction.indexOf('top') !== -1) {
-						top = offset.top - parentCoords.height * options.distance;
+					if (o.direction.indexOf('top') !== -1) {
+						top = offset.top - parentCoords.height * o.distance;
 	
 						this.css('top', top < 0 ? 0 : top); // 1 = o.distance
-					} else if (options.direction.indexOf('bottom') !== -1) {
-						top = offset.top + parentCoords.height * options.distance;
+					} else if (o.direction.indexOf('bottom') !== -1) {
+						top = offset.top + parentCoords.height * o.distance;
 	
 						this.css('top', top > mTop ? mTop : top); // 1 = o.distance
 					}
 	
-					if (options.direction.indexOf('left') !== -1) {
-						left = offset.left - parentCoords.width * options.distance;
+					if (o.direction.indexOf('left') !== -1) {
+						left = offset.left - parentCoords.width * o.distance;
 	
 						this.css('left', left < 0 ? 0 : left); // 1 = o.distance
-					} else if (options.direction.indexOf('right') !== -1) {
-						left = offset.left + parentCoords.width * options.distance;
+					} else if (o.direction.indexOf('right') !== -1) {
+						left = offset.left + parentCoords.width * o.distance;
 	
 						this.css('left', left > mLeft ? mLeft : left); // 1 = o.distance
 					}
 	
 				} else { /* We're going to disintegrate */
-					if (options.direction.indexOf('bottom') !== -1) {
-						top = offset.top + parentCoords.height * options.distance;
+					if (o.direction.indexOf('bottom') !== -1) {
+						top = offset.top + parentCoords.height * o.distance;
 	
 						properties.top = top > mTop ? mTop : top; // 1 = o.distance
-					} else if (options.direction.indexOf('top') !== -1) {
-						var top = offset.top - parentCoords.height * options.distance
+					} else if (o.direction.indexOf('top') !== -1) {
+						var top = offset.top - parentCoords.height * o.distance
 	
 						properties.top = top < 0 ? 0 : top; // 1 = o.distance
 					}
 	
-					if (options.direction.indexOf('right') !== -1) {
-						left = offset.left + parentCoords.width * options.distance;
+					if (o.direction.indexOf('right') !== -1) {
+						left = offset.left + parentCoords.width * o.distance;
 	
 						properties.left = left > mLeft ? mLeft : left; // 1 = o.distance
-					} else if (options.direction.indexOf('left') !== -1) {
-						left = offset.left - parentCoords.width * options.distance;
+					} else if (o.direction.indexOf('left') !== -1) {
+						left = offset.left - parentCoords.width * o.distance;
 	
 						properties.left = left < 0 ? 0 : left; // 1 = o.distance
 					}
@@ -312,18 +312,18 @@
 						Randomize delay if necessary
 						Note, reverse doesn't really matter at this time
 					*/
-				if (options.random !== false) {
+				if (o.random !== false) {
 	
 					var randomDelay = Math.random() * wordCount * interval,
 						/* If interval or random is negative, start from the bottom instead of top */
-						uniformDelay = options.reverse ? ((wordCount - i) * interval) : (i * interval);
+						uniformDelay = o.reverse ? ((wordCount - i) * interval) : (i * interval);
 	
-					delay = randomDelay * options.random + Math.max(1 - options.random, 0) * uniformDelay;
+					delay = randomDelay * o.random + Math.max(1 - o.random, 0) * uniformDelay;
 				}
 	
 	
 				/* run it */
-				this.delay(delay + 10 /* fixes stuff in chrome*/ ).animate(properties, duration, options.easing);
+				this.delay(delay + 10 /* fixes stuff in chrome*/ ).animate(properties, duration, o.easing);
 			}
 		});
 	
@@ -351,9 +351,9 @@
 		}
 	
 	
-		var options = o.options = $.extend({}, defaultOptions, {
+		o = $.extend({}, defaultOptions, {
 			easing: 'easeInOutSine'
-		}, o.options, { /* only run when we fadeOut */
+		}, o, { /* only run when we fadeOut */
 			finished: !show ? finished : null,
 			/* only run when we fadeIn */
 			beforeAnimate: show ? beforeAnimate : null,
@@ -367,19 +367,19 @@
 						Randomize delay if necessary
 						Note, reverse doesn't really matter at this time
 					*/
-				if (options.random !== false) {
+				if (o.random !== false) {
 	
 					var randomDelay = Math.random() * wordCount * interval,
 						/* If interval or random is negative, start from the bottom instead of top */
-						uniformDelay = options.reverse ? ((wordCount - i) * interval) : (i * interval);
+						uniformDelay = o.reverse ? ((wordCount - i) * interval) : (i * interval);
 	
-					delay = randomDelay * options.random + Math.max(1 - options.random, 0) * uniformDelay;
+					delay = randomDelay * o.random + Math.max(1 - o.random, 0) * uniformDelay;
 				}
 	
 				/* run it */
 				this.delay(delay).animate({
 					opacity: show
-				}, duration, options.easing);
+				}, duration, o.easing);
 			}
 		});
 	
@@ -393,8 +393,6 @@
 	};
 	
 	$.effects.textAnim = function (o) {
-	
-		var options = o.options;
 	
 		return this.queue(
 	
@@ -412,22 +410,22 @@
 			tagReg = /(<\/?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[^'">\s]+))?)+\s*|\s*)\/?>)/g;
 	
 			/* Translation: /(HTML tag plus spaces)|(word/letter without '<' plus spaces)/g */
-			if (options.words) {
+			if (o.words) {
 				reg = /(<\/?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[^'">\s]+))?)+\s*|\s*)\/?>)\s*|([^\s<]+\s*)/g;
 			} else {
 				reg = /(<\/?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[^'">\s]+))?)+\s*|\s*)\/?>)\s*|([^\s<]\s*)/g;
 			}
 	
 			/* Make sure the correct html is in place */
-			if (options.text !== '') {
-				$this.html(options.text);
+			if (o.text !== '') {
+				$this.html(o.text);
 			}
 	
 			/* Set the current text to use */
-			options.text = $this.html();
+			o.text = $this.html();
 	
 			/* Get the words */
-			words = options.text.match(reg);
+			words = o.text.match(reg);
 	
 			/* Array for HTML, will join later */
 			html = [];
@@ -465,7 +463,7 @@
 			duration = (o.duration - wordCount * interval);
 	
 			/* If the cycle needs to reverse, reverse it all */
-			if (options.reverse) {
+			if (o.reverse) {
 				set.reverse();
 			}
 	
@@ -480,19 +478,19 @@
 				var $word = $(set[i]);
 	
 				/* Do something to the element before the animation starts */
-				$.type(options.beforeAnimate) === 'function' && options.beforeAnimate.call($word);
+				$.type(o.beforeAnimate) === 'function' && o.beforeAnimate.call($word);
 	
 	/*
 						Call the animation per element
 						This way each method can define it's manipulation per element
 					*/
-				options.animate.call($word, interval, duration, i, wordCount, parentCoords);
+				o.animate.call($word, interval, duration, i, wordCount, parentCoords);
 			}
 	
 			setTimeout(
 	
 			function () { /* internal callback when event has finished, therefor pass object */
-				$.type(options.finished) === 'function' && options.finished.call($this);
+				$.type(o.finished) === 'function' && o.finished.call($this);
 	
 				/* normal object, expecting domElement, so give it */
 				$.type(o.callback) === 'function' && o.callback.call($this[0]);
