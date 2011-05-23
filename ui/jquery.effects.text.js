@@ -17,18 +17,17 @@
 		easing: 'linear',
 		words: true,
 		text: '',
-		distance: 1,
-		// move element to/from where * parent.height ()
+		distance: 1, // move element to/from where * parent.height ()
 		direction: 'top',
 		reverse: false,
 		random: false
 	};
 	
-	$.effects.textExplode = function (o, show) {
+	$.effects.textExplode = function ( o, show ) {
 	
-		var docHeight = $(document).height(),
-			docWidth = $(document).width(); /* show is either 1 or null */
-			show = show ? 1 : 0;
+		var docHeight = $( document ).height(),
+			docWidth = $( document ).width();
+			show = show ? 1 : 0; //show is either 1 or null 
 	
 		/* Internal callback to run before animation has started */
 	
