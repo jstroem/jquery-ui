@@ -8,9 +8,47 @@
  * http://docs.jquery.com/UI/Effects/..
  *
  * Depends:
+  *	jquery.effects.core.js
  *	jquery.effects.text.js
  */
-(function( $, undefined ) {
+;jQuery.effects.text || (function( $, undefined ) {
+	//Extend the $.fn with text methods.
+	$.fn.extend({
+		effectText: function( effect, options, speed, callback ) {
+			var args = _normalizeArguments.apply( this, arguments ),
+				mode = args.mode,
+				effectMethod = $.effects.text[ args.effect ];
+			
+			if ( $.isFunction( effectMethod ) ) {
+				return effectMethod.call( this, args );
+			} else {
+				return this.each( function() {
+					if ( args.callback ) {
+						args.callback.call( this );
+					}
+				});
+			}
+		},
+		
+		showText: function( speed ) {
+			var args = _normalizeArguments.apply( this, arguments );
+			args.mode = 'show';
+			return this.effect.call( this, args );
+		},
+	
+		hideText: function( speed ) {
+			var args = _normalizeArguments.apply( this, arguments );
+			args.mode = 'hide';
+			return this.effect.call( this, args );
+		},
+	
+		toggleText: function( speed ) {
+			var args = _normalizeArguments.apply( this, arguments );
+			args.mode = 'toggle';
+			return this.effect.call( this, args );
+		}
+		
+	});
 	/* options: 
 	 *	o.text should be '' if not should be used
 	 *	o.words boolean if words or chars 
