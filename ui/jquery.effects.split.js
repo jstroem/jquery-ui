@@ -27,10 +27,13 @@
 				o.columns = o.columns || 3;
 			}
 			
-			var interval = o.interval, duration = o.duration - (o.rows + o.columns) * interval, pieceCounter = [], documentCoords = {
-				height: $(document).height(),
-				width: $(document).width()
-			}, parentCoords, container, i, j, pieces, properties, width, height, firstEl;
+			var interval = o.interval, duration = o.duration - (o.rows + o.columns) * interval, 
+				pieceCounter = [], 
+				documentCoords = {
+					height: $(document).height(),
+					width: $(document).width()
+				},
+				parentCoords, container, i, j, pieces, properties, width, height, firstEl;
 			
 			$.effects.save(el, ["visibility", "opacity"]);
 			
