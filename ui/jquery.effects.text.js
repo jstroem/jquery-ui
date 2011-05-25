@@ -28,7 +28,8 @@
 			reg,  
 			i, 
 			$set, 
-			set, 
+			set,
+			animationLeft,
 			wordCount, 
 			duration, 
 			interval, 
@@ -96,6 +97,32 @@
 			height: el.height()
 		} );
 		
+		
+		/* Callback used to check when the animation is finished. */
+		animationLeft = set.length;
+		function childCallback() {
+			animationLeft--;
+			if ( animationLeft === 0 ) {
+				animComplete();
+			}
+		}
+		
+		// all child animations are done
+		function animComplete() {
+			/* internal callback when event has finished, therefor pass object */
+			if ( $.type( o.finished ) === 'function' ) {
+				o.finished.call( el );
+			}
+			
+			/* dequeue the shizzle */
+			el.dequeue();
+			
+			if ( $.isFunction( o.complete ) ) {
+				o.complete.apply( el[ 0 ] );
+			}
+			next();
+		}
+		
 		/* Iterate over all the elements run their animation function on it */
 		for (i = 0, l = set.length; i < l; i++) {
 			var $word = $( set[ i ] );
@@ -108,17 +135,6 @@
 			*/
 			o.animate.call($word, interval, duration, i, wordCount, parentCoords);
 		}
-	
-		setTimeout(
-		function () { /* internal callback when event has finished, therefor pass object */
-			$.type(o.finished) === 'function' && o.finished.call($this);
-
-			/* normal object, expecting domElement, so give it */
-			$.type(o.callback) === 'function' && o.callback.call($this[0]);
-
-			/* dequeue the shizzle */
-			$this.dequeue();
-		}, o.duration);
 	
 	}
 	
