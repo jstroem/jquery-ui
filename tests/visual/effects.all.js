@@ -6,21 +6,30 @@ $(function() {
 		.hover(function() { $(this).addClass("hover"); },
 			function() { $(this).removeClass("hover"); });
 
-	var effect = function(el, n, o) {
-
+	var effect = function(el, n, o, text) {
+		var effect;
+		if ( !text ) {
+			effect = $.fn.effect;
+		} else {
+			effect = $.fn.textEffect;
+		}
+		
 		$.extend(o, {
 			easing: "easeOutQuint"
 		});
-
-		$(el).bind("click", function() {
-
-			$(this).addClass("current").hide(n, o, duration, function() {
-				var self = this;
-				window.setTimeout(function() {
-					$(self).show(n, o, duration, function() { $(this).removeClass("current"); });
-				}, wait);
-			});
-		});
+		
+		el = $( el );
+		
+		el.bind("click", function() {
+			el.addClass("current");
+			effect.call( el,  n, $.extend( o, { mode: 'hide' } ), duration, function() {
+				window.setTimeout( function() {
+					effect.call( el, n, $.extend( o, { mode: 'show' } ), duration, function() { 
+						el.removeClass("current"); 
+					} );
+				}, wait );
+			} );
+		} );
 
 	};
 	
