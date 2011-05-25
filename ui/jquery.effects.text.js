@@ -208,7 +208,7 @@
 			animate: function (interval, duration, i, wordCount, parentCoords) {
 	
 				/* set some basic stuff */
-				var offset = this.offset(),
+				var offset = this.offset(),	
 					offsetTo = {},
 					width = this.outerWidth(),
 					height = this.outerHeight(),
