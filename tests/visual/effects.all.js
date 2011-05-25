@@ -98,4 +98,15 @@ $(function() {
 			return "current"
 		}, duration);
 	});
+	
+	effect( "#textExplode", "explode", { easing: "linear" }, true );
+	effect( "#textType", "type", { easing: "linear" }, true );
+	effect( "#textBuild", "build", { easing: "linear" }, true );
+	effect( "#textBlockfade", "blockfade", { easing: "linear" }, true );
+	
+	effect( "#textExplodeWord", "explode", { easing: "linear", words: true }, true );
+	effect( "#textTypeWord", "type", { easing: "linear", words: true }, true );
+	effect( "#textBuildWord", "build", { easing: "linear", words: true }, true );
+	effect( "#textBlockfadeWord", "blockfade", { easing: "linear", words: true }, true );
+		
 });
