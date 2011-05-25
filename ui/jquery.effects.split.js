@@ -16,77 +16,77 @@
 	//Creating object for helper functions
 	$.effects.split = {
 		//Helper function to control the split on each animation
-		startAnim: function(el, o, animation, next){
+		startAnim: function(el, o, animation, next) {
 		
 			//Support for pieces
-			if ((!o.rows || !o.columns) && o.pieces) {
-				o.rows = o.columns = Math.round(Math.sqrt(o.pieces));
-			}
-			else {
+			if ( ( !o.rows || !o.columns ) && o.pieces ) {
+				o.rows = o.columns = Math.round( Math.sqrt( o.pieces ) );
+			} else {
 				o.rows = o.rows || 3;
 				o.columns = o.columns || 3;
 			}
 			
-			var interval = o.interval, duration = o.duration - (o.rows + o.columns) * interval, 
-				pieceCounter = [], 
+			var interval = o.interval, 
+				duration = o.duration - ( o.rows + o.columns ) * interval,
+				pieceCounter = o.rows * o.columns,
 				documentCoords = {
-					height: $(document).height(),
-					width: $(document).width()
+					height: $( document ).height(),
+					width: $( document ).width()
 				},
 				parentCoords, container, i, j, pieces, properties, width, height, firstEl;
 			
-			$.effects.save(el, ["visibility", "opacity"]);
+			$.effects.save( el, [ "visibility", "opacity" ] );
 			
-			parentCoords = el.show().css("visibility", "hidden").offset();
+			parentCoords = el.show().css( "visibility", "hidden" ).offset();
 			parentCoords.width = el.outerWidth();
 			parentCoords.height = el.outerHeight();
-			
-			if (interval === false) {
-				interval = o.duration / (o.rows + o.columns * 2);
+	
+			if ( interval === false ){
+				interval = o.duration / ( o.rows + o.columns * 2 );
 			}
-			
+	
 			//split into pieces
-			pieces = $.effects.split.piecer(el, o);
-			firstEl = $(pieces[0]);
-			container = firstEl.parent().addClass("ui-effects-split");
+			pieces = $.effects.split.piecer( el, o );
+			firstEl = $( pieces[ 0 ] );
+			container = firstEl.parent().addClass( "ui-effects-split" );
 			width = firstEl.outerWidth();
 			height = firstEl.outerHeight();
-			
-			container.css("overflow", o.crop ? "hidden" : "visible");
-			
-			//Make animation
-			for (i = 0; i < o.rows; i++) {
-				for (j = 0; j < o.columns; j++) {
-					// call the animation for each piece.
-					animation.call(pieces[i * o.columns + j], width, height, interval, duration, i, j, documentCoords, parentCoords, childComplete);
-				}
-			}
+	
+			container.css( "overflow", o.crop ? "hidden" : "visible" );
 			
 			// children animate complete
-			function childComplete(){
-				pieceCounter.push(this);
-				if (pieceCounter.length === o.rows * o.columns) {
+			function childComplete() {
+				pieceCounter--;
+				if ( pieceCounter === 0 ) {
 					animComplete();
 				}
 			}
 			
-			function animComplete(){
+			// all children are done
+			function animComplete() {
 				// Ensures that the element is hidden/shown correctly
-				$.effects.restore(el, ["visibility", "opacity"]);
+				$.effects.restore( el, [ "visibility", "opacity" ] );
 				
-				if (o.show) {
+				if ( o.show ) {
 					el.show();
-				}
-				else {
+				} else {
 					el.hide();
 				}
 				
-				container.remove();
+				container.remove( );
 				
-				if ($.isFunction(o.complete)) {
-					o.complete.apply(el[0]);
+				if ( $.isFunction( o.complete ) ) {
+					o.complete.apply( el[ 0 ] );
 				}
 				next();
+			}
+			
+			//Make animation
+			for ( i = 0; i < o.rows; i++ ) {
+				for ( j = 0; j < o.columns; j++ ) {
+					// call the animation for each piece.
+					animation.call( pieces[ i*o.columns + j ], width, height, interval, duration, i, j, documentCoords, parentCoords, childComplete );
+				}
 			}
 		},
 		
