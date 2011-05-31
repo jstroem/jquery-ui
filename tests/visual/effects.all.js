@@ -99,14 +99,14 @@ $(function() {
 		}, duration);
 	});
 	
-	effect( "#textExplode", "explode", { easing: "linear" }, true );
-	effect( "#textType", "type", { easing: "linear" }, true );
-	effect( "#textBuild", "build", { easing: "linear" }, true );
-	effect( "#textBlockfade", "blockfade", { easing: "linear" }, true );
+	effect( "#textExplode", "explode", { easing: "linear", words: false }, true );
+	effect( "#textType", "type", { easing: "linear", words: false }, true );
+	effect( "#textBuild", "build", { easing: "linear", words: false }, true );
+	effect( "#textBlockfade", "blockfade", { easing: "linear", words: false }, true );
 	
-	effect( "#textExplodeWord", "explode", { easing: "linear", words: true }, true );
-	effect( "#textTypeWord", "type", { easing: "linear", words: true }, true );
-	effect( "#textBuildWord", "build", { easing: "linear", words: true }, true );
-	effect( "#textBlockfadeWord", "blockfade", { easing: "linear", words: true }, true );
+	effect( "#textExplodeWord", "explode", { easing: "linear" }, true );
+	effect( "#textTypeWord", "type", { easing: "linear" }, true );
+	effect( "#textBuildWord", "build", { easing: "linear" }, true );
+	effect( "#textBlockfadeWord", "blockfade", { easing: "linear" }, true );
 		
 });

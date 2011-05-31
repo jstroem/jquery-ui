@@ -14,8 +14,8 @@
 ;jQuery.effects.text || (function( $, undefined ) {
 	//Extend the $.fn with text methods.
 	$.fn.extend({
-		effectText: function( effect, options, speed, callback ) {
-			var args = _normalizeArguments.apply( this, arguments ),
+		textEffect: function( effect, options, speed, callback ) {
+			var args = $.effects.normalizeArguments.apply( this, arguments ),
 				mode = args.mode,
 				effectMethod = $.effects.text[ args.effect ];
 			
@@ -31,51 +31,42 @@
 		},
 		
 		showText: function( speed ) {
-			var args = _normalizeArguments.apply( this, arguments );
-			args.mode = 'show';
-			return this.effect.call( this, args );
+			var args = $.effects.normalizeArguments.apply( this, arguments );
+			args.mode = "show";
+			return this.textEffect.call( this, args );
 		},
 	
 		hideText: function( speed ) {
-			var args = _normalizeArguments.apply( this, arguments );
-			args.mode = 'hide';
-			return this.effect.call( this, args );
+			var args = $.effects.normalizeArguments.apply( this, arguments );
+			args.mode = "hide";
+			return this.textEffect.call( this, args );
 		},
 	
 		toggleText: function( speed ) {
-			var args = _normalizeArguments.apply( this, arguments );
-			args.mode = 'toggle';
-			return this.effect.call( this, args );
+			var args = $.effects.normalizeArguments.apply( this, arguments );
+			args.mode = "toggle";
+			return this.textEffect.call( this, args );
 		}
 		
 	});
+	
 	/* options: 
 	 *	o.text should be '' if not should be used
 	 *	o.words boolean if words or chars 
 	 *	o.duration
 	 * 	o.reverse
 	 */
-	
 	function startTextAnim( el, o, animation, next ) {
 		/*	The following regular expression courtesy of Phil Haack
 			http://haacked.com/archive/2004/10/25/usingregularexpressionstomatchhtml.aspx
 		*/
 		var tagReg = /(<\/?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[^'">\s]+))?)+\s*|\s*)\/?>)/g,
 			html = [],
-			replaceWith,
-			reg,  
-			i, 
-			$set, 
-			set,
-			animationLeft,
-			wordCount, 
-			duration, 
-			interval, 
-			parentCoords;
-			//$this = $(this); /* No height etc. */ //NOTE: el is used
-			
-		el.width( el.width() );
-		el.height( el.height() );
+			parentCoords = $.extend( el.offset(), {
+				width: el.width(),
+				height: el.height()
+			} ), 
+			replaceWith, reg, i, orgHtml, set, animationLeft, wordCount, duration, interval;
 	
 		/* Translation: /(HTML tag plus spaces)|(word/letter without '<' plus spaces)/g */
 		if ( o.words ) {
@@ -84,9 +75,14 @@
 			reg = /(<\/?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[^'">\s]+))?)+\s*|\s*)\/?>)\s*|([^\s<]\s*)/g;
 		}
 
-		/* Make sure the correct html is in place */
-		if ( o.text !== '' ) {
-			el.html( o.text );
+		/* If animation is hiding then take the text from o.text or el.data( 'ui-hidden-text' ) */
+		if ( o.show ) {
+			orgHtml = o.text || el.data( "ui-hidden-text" ) || "";
+			el.html ( o.text || el.data( "ui-hidden-text" ) || "" );
+		} else {
+			/* If showing then save the html in el.data( 'ui-hidden-text' ) */
+			orgHtml = el.html();
+			el.data( "ui-hidden-text", el.html( ) );
 		}
 
 		/* Set the current text to use */
@@ -117,8 +113,8 @@
 		el.html( html.join( "" ) );
 	
 		/* Retreive the total set of elements */
-		$set = el.find( 'span:not(:has(span))' );
-		set = $set.get( );
+		set = el.find( "span:not(:has(span))" ).get( );
+		console.log(set);
 	
 		/* Calculate the duration and interval points */
 		interval = ( o.duration / ( 1.5 * wordCount ) );
@@ -127,17 +123,11 @@
 		/* If the cycle needs to reverse, reverse it all */
 		if ( o.reverse ) {
 			set.reverse();
-		}
-	
-		/* Width, height, left, top of parent for calculations */
-		parentCoords = $.extend( el.offset(), {
-			width: el.width(),
-			height: el.height()
-		} );
-		
+		}		
 		
 		/* Callback used to check when the animation is finished. */
 		animationLeft = set.length;
+		
 		function childCallback() {
 			animationLeft--;
 			if ( animationLeft === 0 ) {
@@ -148,6 +138,13 @@
 		// all child animations are done
 		function animComplete() {
 			/* internal callback when event has finished, therefor pass object */
+			if ( !o.show ) {
+				el.empty();
+			} else {
+				el.removeData( 'ui-hidden-text' );
+				el.html( orgHtml );
+			}
+			
 			if ( $.type( o.finished ) === 'function' ) {
 				o.finished.call( el );
 			}
@@ -162,34 +159,83 @@
 		}
 		
 		/* Iterate over all the elements run their animation function on it */
-		for (i = 0, l = set.length; i < l; i++) {
+		for ( i = 0, l = set.length; i < l; i++ ) {
 			var $word = $( set[ i ] );
-
-			/* Do something to the element before the animation starts */
-			$.type( o.beforeAnimate ) === 'function' && o.beforeAnimate.call( $word );
-
 			/*	Call the animation per element
 				This way each method can define it's manipulation per element
 			*/
-			o.animate.call($word, interval, duration, i, wordCount, parentCoords);
+			animation.call( $word, interval, duration, i, wordCount, parentCoords, childCallback );
 		}
 	
-	}
+	};
+	
+	function textOptions( el, o ) {
+		var opt = $.extend( {
+			easing: 'linear',
+			words: true,
+			text: false,
+			distance: 1, // move element to/from where * parent.height ()
+			direction: 'top',
+			reverse: false,
+			duration: 10,
+			random: false,
+			wordDelay: 0
+		}, o );
+		
+		opt.mode = $.effects.setMode( el, opt.mode );
+		opt.show = opt.mode === "show";
+		
+		return opt;
+	};
 	
 	$.effects.text = {
 		explode: function ( o ) {
-			
+			return this.queue( function( next ) {
+				var el = $( this ),
+					opt = textOptions( o );
+			} );
 		},
 		
 		type: function ( o ) {
+			return this.queue( function( next ) {
+				var el = $( this ),
+					opt = textOptions( el, o );
+					
+				function animate ( interval, duration, i, wordCount, parentCoords, callback ) {
+					var el = $( this ),
+						delay = opt.show ? 
+								( interval * i ) : 
+								( wordCount - i - 1 ) * interval,
+						randomDelay = 0;
+					
+					/** TODO: Should the show not be removed here? **/
+					if ( opt.random !== false && show ) {
+						randomDelay = ( Math.random() * text.length * interval ) * interval;
+						
+						/* The higher the random % the slower */
+						delay = (randomDelay / (2 - opt.random)) + opt.wordDelay;
+						opt.wordDelay = delay;
+					}
+						
+					if ( opt.show ) { 
+						el.css( 'opacity', 0 ); 
+					}
+					
+					el.delay( delay ).animate( { opacity: opt.show }, duration, opt.easing, callback );
+				}
+				
+				startTextAnim( el, opt, animate, next );				
+			} );
 		},
 		
 		build: function ( o ) {
-			
+			return this.queue( function( next ) {
+			} );
 		},
 		
 		blockfade: function ( o ) {
-			
+			return this.queue( function( next ) {
+			} );
 		},
 		
 		
@@ -220,7 +266,7 @@
 	
 			/* Set the current position of the element */
 			var $this = this.css(this.offset());
-	/*
+			/*
 				Have to find out why this happends,
 				just doing this.css ('position', 'absolute') doesn't work >:-[
 				So we use this work around

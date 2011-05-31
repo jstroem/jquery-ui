@@ -433,58 +433,58 @@ $.extend( $.effects, {
 			if ( unit[ 0 ] > 0 ) value[ x ] = unit[ 0 ] * factor + unit[ 1 ];
 		});
 		return value;
-	}
-});
+	},
 
-// return an effect options object for the given parameters:
-function _normalizeArguments( effect, options, speed, callback ) {
-
-	// short path for passing an effect options object:
-	if ( $.isPlainObject( effect ) ) {
+	// return an effect options object for the given parameters:
+	normalizeArguments: function( effect, options, speed, callback ) {
+	
+		// short path for passing an effect options object:
+		if ( $.isPlainObject( effect ) ) {
+			return effect;
+		}
+	
+		// convert to an object
+		effect = { effect: effect };
+	
+		// catch (effect)
+		if ( options === undefined ) {
+			options = {};
+		}
+	
+		// catch (effect, callback)
+		if ( $.isFunction( options ) ) {
+			callback = options;
+			speed = null;
+			options = {};
+		}
+	
+		// catch (effect, speed, ?)
+		if ( $.type( options ) == 'number' || $.fx.speeds[ options ]) {
+			callback = speed;
+			speed = options;
+			options = {};
+		}
+	
+		// catch (effect, options, callback)
+		if ( $.isFunction( speed ) ) {
+			callback = speed;
+			speed = null;
+		}
+	
+		// add options to effect
+		if ( options ) {
+			$.extend( effect, options );
+		}
+		
+		speed = speed || options.duration;
+		effect.duration = $.fx.off ? 0 : typeof speed == 'number'
+			? speed : speed in $.fx.speeds ? $.fx.speeds[ speed ] : $.fx.speeds._default;
+	
+		effect.complete = callback || options.complete;
+	
 		return effect;
 	}
-
-	// convert to an object
-	effect = { effect: effect };
-
-	// catch (effect)
-	if ( options === undefined ) {
-		options = {};
-	}
-
-	// catch (effect, callback)
-	if ( $.isFunction( options ) ) {
-		callback = options;
-		speed = null;
-		options = {};
-	}
-
-	// catch (effect, speed, ?)
-	if ( $.type( options ) == 'number' || $.fx.speeds[ options ]) {
-		callback = speed;
-		speed = options;
-		options = {};
-	}
-
-	// catch (effect, options, callback)
-	if ( $.isFunction( speed ) ) {
-		callback = speed;
-		speed = null;
-	}
-
-	// add options to effect
-	if ( options ) {
-		$.extend( effect, options );
-	}
-	
-	speed = speed || options.duration;
-	effect.duration = $.fx.off ? 0 : typeof speed == 'number'
-		? speed : speed in $.fx.speeds ? $.fx.speeds[ speed ] : $.fx.speeds._default;
-
-	effect.complete = callback || options.complete;
-
-	return effect;
-}
+});
 
 function standardSpeed( speed ) {
 	// valid standard speeds
@@ -502,7 +502,7 @@ function standardSpeed( speed ) {
 
 $.fn.extend({
 	effect: function( effect, options, speed, callback ) {
-		var args = _normalizeArguments.apply( this, arguments ),
+		var args = $.effects.normalizeArguments.apply( this, arguments ),
 			mode = args.mode,
 			effectMethod = $.effects[ args.effect ];
 		
@@ -526,7 +526,7 @@ $.fn.extend({
 		if ( standardSpeed( speed ) ) {
 			return this._show.apply( this, arguments );
 		} else {
-			var args = _normalizeArguments.apply( this, arguments );
+			var args = $.effects.normalizeArguments.apply( this, arguments );
 			args.mode = 'show';
 			return this.effect.call( this, args );
 		}
@@ -537,7 +537,7 @@ $.fn.extend({
 		if ( standardSpeed( speed ) ) {
 			return this._hide.apply( this, arguments );
 		} else {
-			var args = _normalizeArguments.apply( this, arguments );
+			var args = $.effects.normalizeArguments.apply( this, arguments );
 			args.mode = 'hide';
 			return this.effect.call( this, args );
 		}
@@ -549,7 +549,7 @@ $.fn.extend({
 		if ( standardSpeed( speed ) || typeof speed === "boolean" || $.isFunction( speed ) ) {
 			return this.__toggle.apply( this, arguments );
 		} else {
-			var args = _normalizeArguments.apply( this, arguments );
+			var args = $.effects.normalizeArguments.apply( this, arguments );
 			args.mode = 'toggle';
 			return this.effect.call( this, args );
 		}
