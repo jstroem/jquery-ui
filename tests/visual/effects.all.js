@@ -11,7 +11,7 @@ $(function() {
 		if ( !text ) {
 			effect = $.fn.effect;
 		} else {
-			effect = $.fn.effectText;
+			effect = $.fn.textEffect;
 		}
 		
 		$.extend(o, {

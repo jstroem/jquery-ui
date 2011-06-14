@@ -112,9 +112,8 @@
 		/* Put the newer correct html in place */
 		el.html( html.join( "" ) );
 	
-		/* Retreive the total set of elements */
+		/* Retrieve the total set of elements */
 		set = el.find( "span:not(:has(span))" ).get( );
-		console.log(set);
 	
 		/* Calculate the duration and interval points */
 		interval = ( o.duration / ( 1.5 * wordCount ) );
@@ -209,7 +208,7 @@
 						randomDelay = 0;
 					
 					/** TODO: Should the show not be removed here? **/
-					if ( opt.random !== false && show ) {
+					if ( opt.random !== false && opt.show ) {
 						randomDelay = ( Math.random() * text.length * interval ) * interval;
 						
 						/* The higher the random % the slower */
@@ -220,7 +219,7 @@
 					if ( opt.show ) { 
 						el.css( 'opacity', 0 ); 
 					}
-					
+					/** TODO: Should we make a not editable speed like in the examples **/
 					el.delay( delay ).animate( { opacity: opt.show }, duration, opt.easing, callback );
 				}
 				
@@ -235,6 +234,32 @@
 		
 		blockfade: function ( o ) {
 			return this.queue( function( next ) {
+				var el = $( this ),
+					opt = textOptions( el, o );
+				function animate( interval, duration, i, wordCount, parentCoords, callback ){
+					var el = $( this ),
+						delay = interval * i,
+						randomDelay = 0, 
+						uniformDelay = 0;
+						
+					if ( opt.random !== false ) {
+						randomDelay = Math.random() * wordCount * interval;
+						
+						/* If interval or random is negative, start from the bottom instead of top */
+						if ( opt.reverse ) {
+							uniformDelay = ( wordCount - i ) * interval;
+						} else {
+							uniformDelay = i * interval; 
+						}
+		
+						delay = randomDelay * opt.random + Math.max( 1 - opt.random, 0 ) * uniformDelay;
+					}
+		
+					/* run it */
+					el.delay( delay ).animate( { opacity: opt.show }, duration, opt.easing, callback );
+				};
+				
+				startTextAnim( el, opt, animate, next );	
 			} );
 		},
 		
