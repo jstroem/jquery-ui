@@ -140,11 +140,11 @@
 			if ( !o.show ) {
 				el.empty();
 			} else {
-				el.removeData( 'ui-hidden-text' );
+				el.removeData( "ui-hidden-text" );
 				el.html( orgHtml );
 			}
 			
-			if ( $.type( o.finished ) === 'function' ) {
+			if ( $.type( o.finished ) === "function" ) {
 				o.finished.call( el );
 			}
 			
@@ -191,7 +191,75 @@
 		explode: function ( o ) {
 			return this.queue( function( next ) {
 				var el = $( this ),
-					opt = textOptions( o );
+					opt = textOptions( el, o );
+
+				function animate ( interval, duration, i, wordCount, parentCoords, callback ) {
+					var el = $( this ),
+						startProperties = el.offset(),
+						width = el.outerWidth(),
+						height = el.outerHeight(),
+						properties = {
+							opacity: 0
+						},
+						distance = opt.distance * 2,
+						randomX = 0,
+						randomY = 0,
+						delay = opt.show ? 
+								( interval * i ) : 
+								( wordCount - i - 1 ) * interval,
+						/** TODO: Delay was fixed to '10' should this be? **/
+						distanceY, distanceX, distanceXY;
+		
+					/* Hide or show the element according to what we're going to do */
+					startProperties.opacity = 1;
+		
+					if ( opt.random !== false ) {
+						var seed = ( Math.random() * opt.random ) + Math.max( 1 - opt.random, 0 );
+						distance *= seed;
+						duration *= seed;
+						
+						randomX = Math.random() - 0.5;
+						randomY = Math.random() - 0.5;
+					}
+		
+					distanceY = ( ( parentCoords.height - height ) / 2 - ( startProperties.top - parentCoords.top ) );
+					distanceX = ( ( parentCoords.width - width ) / 2 - ( startProperties.left - parentCoords.left ) );
+					distanceXY = Math.sqrt( Math.pow( distanceX, 2 ) + Math.pow( distanceY, 2 ) );
+		
+					properties.top = startProperties.top - distanceY * distance + distanceXY * randomY;
+					properties.left = startProperties.left - distanceX * distance + distanceXY * randomX;
+		
+					/** TODO: Removed the docheight/width functionallity
+					 if (offsetTo.top > (docHeight - height)) {
+						offsetTo.top = docHeight - height;
+						*/
+					if ( properties.top < 0 ) {
+						properties.top = 0;
+					}
+		
+					/*if (offsetTo.left > (docWidth - width)) {
+						offsetTo.left = docWidth - width;
+					} else */
+					if ( properties.left < 0 ) {
+						properties.left = 0;
+					}
+		
+					if ( opt.show ) {
+						el.css( properties );
+						properties = startProperties;
+					} else {
+						el.css( startProperties );
+					}
+					
+					/** TODO: Settimeout bug.. find someway to get around this. **/
+					setTimeout( function () {
+						el.css( 'position', 'absolute' )
+					}, 10 );
+					
+					el.delay( delay ).animate( properties, duration, opt.easing, callback );
+				}
+				
+				startTextAnim( el, opt, animate, next );
 			} );
 		},
 		
