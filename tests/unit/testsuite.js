@@ -26,8 +26,6 @@ var privateMethods = [
 	"_createWidget",
 	"destroy",
 	"option",
-	"enable",
-	"disable",
 	"_trigger"
 ];
 
@@ -63,7 +61,7 @@ window.commonWidgetTests = function( widget, settings ) {
 	testWidgetOverrides( widget );
 	testBasicUsage( widget );
 	test( "version", function() {
-		ok( "version" in $.ui[ widget ], "version property exists" );
+		ok( "version" in $.ui[ widget ].prototype, "version property exists" );
 	});
 }
 
@@ -77,6 +75,10 @@ window.domEqual = function( selector, modifier, message ) {
 	var attributes = ["class", "role", "id", "tabIndex", "aria-activedescendant"];
 	
 	function extract(value) {
+		if (!value || !value.length) {
+			QUnit.push( false, actual, expected, "domEqual failed, can't extract " + selector + ", message was: " + message );
+			return;
+		}
 		var result = {};
 		result.nodeName = value[0].nodeName;
 		$.each(attributes, function(index, attr) {
@@ -96,7 +98,8 @@ window.domEqual = function( selector, modifier, message ) {
 	var expected = extract($(selector));
 	modifier($(selector));
 	
-	deepEqual( extract($(selector)), expected, message );
+	var actual = extract($(selector));
+	QUnit.push( QUnit.equiv(actual, expected), actual, expected, message );
 }
 
 }());

@@ -17,15 +17,58 @@
 		textEffect: function( effect, options, speed, callback ) {
 			var args = $.effects.normalizeArguments.apply( this, arguments ),
 				mode = args.mode,
-				effectMethod = $.effects.text[ args.effect ];
+				queue = args.queue,
+				effectMethod = $.effects.text[ args.effect ],
+	
+				// DEPRECATED: remove in 2.0 (#7115)
+				oldEffectMethod = !effectMethod && backCompat && $.effects[ args.effect ];
+	
+			if ( $.fx.off || !( effectMethod || oldEffectMethod ) ) {
+				// delegate to the original method (e.g., .show()) if possible
+				if ( mode ) {
+					return this[ mode ]( args.duration, args.complete );
+				} else {
+					return this.each( function() {
+						if ( args.complete ) {
+							args.complete.call( this );
+						}
+					});
+				}
+			}
 			
-			if ( $.isFunction( effectMethod ) ) {
-				return effectMethod.call( this, args );
-			} else {
-				return this.each( function() {
-					if ( args.callback ) {
-						args.callback.call( this );
+			function run( next ) {
+				var elem = $( this ),
+					complete = args.complete,
+					mode = args.mode;
+	
+				function done() {
+					if ( $.isFunction( complete ) ) {
+						complete.call( elem[0] );
 					}
+					if ( $.isFunction( next ) ) {
+						next();
+					}
+				}
+	
+				// if the element is hiddden and mode is hide,
+				// or element is visible and mode is show
+				if ( elem.is( ":hidden" ) ? mode === "hide" : mode === "show" ) {
+					done();
+				} else {
+					effectMethod.call( elem[0], args, done );
+				}
+			}
+	
+			// TODO: remove this check in 2.0, effectMethod will always be true
+			if ( effectMethod ) {
+				return queue === false ? this.each( run ) : this.queue( queue || "fx", run );
+			} else {
+				// DEPRECATED: remove in 2.0 (#7115)
+				return oldEffectMethod.call(this, {
+					options: args,
+					duration: args.duration,
+					callback: args.complete,
+					mode: args.mode
 				});
 			}
 		},
@@ -56,7 +99,7 @@
 	 *	o.duration
 	 * 	o.reverse
 	 */
-	function startTextAnim( el, o, animation, next ) {
+	function startTextAnim( el, o, animation, done ) {
 		/*	The following regular expression courtesy of Phil Haack
 			http://haacked.com/archive/2004/10/25/usingregularexpressionstomatchhtml.aspx
 		*/
@@ -151,10 +194,7 @@
 			/* dequeue the shizzle */
 			el.dequeue();
 			
-			if ( $.isFunction( o.complete ) ) {
-				o.complete.apply( el[ 0 ] );
-			}
-			next();
+			done();
 		}
 		
 		/* Iterate over all the elements run their animation function on it */
@@ -188,238 +228,231 @@
 	};
 	
 	$.effects.text = {
-		explode: function ( o ) {
-			return this.queue( function( next ) {
-				var el = $( this ),
-					opt = textOptions( el, o );
+		explode: function ( o, done ) {
+			var el = $( this ),
+				opt = textOptions( el, o );
 
-				function animate ( interval, duration, i, wordCount, parentCoords, callback ) {
-					var el = $( this ),
-						startProperties = el.offset(),
-						width = el.outerWidth(),
-						height = el.outerHeight(),
-						properties = {
-							opacity: 0
-						},
-						distance = opt.distance * 2,
-						randomX = 0,
-						randomY = 0,
-						delay = opt.show ? 
-								( interval * i ) : 
-								( wordCount - i - 1 ) * interval,
-						/** TODO: Delay was fixed to '10' should this be? **/
-						distanceY, distanceX, distanceXY;
-		
-					/* Hide or show the element according to what we're going to do */
-					startProperties.opacity = 1;
-		
-					if ( opt.random !== false ) {
-						var seed = ( Math.random() * opt.random ) + Math.max( 1 - opt.random, 0 );
-						distance *= seed;
-						duration *= seed;
-						
-						randomX = Math.random() - 0.5;
-						randomY = Math.random() - 0.5;
-					}
-		
-					distanceY = ( ( parentCoords.height - height ) / 2 - ( startProperties.top - parentCoords.top ) );
-					distanceX = ( ( parentCoords.width - width ) / 2 - ( startProperties.left - parentCoords.left ) );
-					distanceXY = Math.sqrt( Math.pow( distanceX, 2 ) + Math.pow( distanceY, 2 ) );
-		
-					properties.top = startProperties.top - distanceY * distance + distanceXY * randomY;
-					properties.left = startProperties.left - distanceX * distance + distanceXY * randomX;
-		
-					/** TODO: Removed the docheight functionallity
-					 if (offsetTo.top > (docHeight - height)) {
-						offsetTo.top = docHeight - height;
-						*/
-					if ( properties.top < 0 ) {
-						properties.top = 0;
-					}
-					/** TODO: Removed the docwidth functionallity
-					/*if (offsetTo.left > (docWidth - width)) {
-						offsetTo.left = docWidth - width;
-					} else */
-					if ( properties.left < 0 ) {
-						properties.left = 0;
-					}
-		
-					if ( opt.show ) {
-						el.css( properties );
-						properties = startProperties;
-					} else {
-						el.css( startProperties );
-					}
+			function animate ( interval, duration, i, wordCount, parentCoords, callback ) {
+				var el = $( this ),
+					startProperties = el.offset(),
+					width = el.outerWidth(),
+					height = el.outerHeight(),
+					properties = {
+						opacity: 0
+					},
+					distance = opt.distance * 2,
+					randomX = 0,
+					randomY = 0,
+					delay = opt.show ? 
+							( interval * i ) : 
+							( wordCount - i - 1 ) * interval,
+					/** TODO: Delay was fixed to '10' should this be? **/
+					distanceY, distanceX, distanceXY;
+	
+				/* Hide or show the element according to what we're going to do */
+				startProperties.opacity = 1;
+	
+				if ( opt.random !== false ) {
+					var seed = ( Math.random() * opt.random ) + Math.max( 1 - opt.random, 0 );
+					distance *= seed;
+					duration *= seed;
 					
-					/** TODO: Settimeout bug.. find someway to get around this. **/
-					setTimeout( function () {
-						el.css( 'position', 'absolute' )
-					}, 10 );
-					
-					el.delay( delay ).animate( properties, duration, opt.easing, callback );
+					randomX = Math.random() - 0.5;
+					randomY = Math.random() - 0.5;
+				}
+	
+				distanceY = ( ( parentCoords.height - height ) / 2 - ( startProperties.top - parentCoords.top ) );
+				distanceX = ( ( parentCoords.width - width ) / 2 - ( startProperties.left - parentCoords.left ) );
+				distanceXY = Math.sqrt( Math.pow( distanceX, 2 ) + Math.pow( distanceY, 2 ) );
+	
+				properties.top = startProperties.top - distanceY * distance + distanceXY * randomY;
+				properties.left = startProperties.left - distanceX * distance + distanceXY * randomX;
+	
+				/** TODO: Removed the docheight functionallity
+				 if (offsetTo.top > (docHeight - height)) {
+					offsetTo.top = docHeight - height;
+					*/
+				if ( properties.top < 0 ) {
+					properties.top = 0;
+				}
+				/** TODO: Removed the docwidth functionallity
+				/*if (offsetTo.left > (docWidth - width)) {
+					offsetTo.left = docWidth - width;
+				} else */
+				if ( properties.left < 0 ) {
+					properties.left = 0;
+				}
+	
+				if ( opt.show ) {
+					el.css( properties );
+					properties = startProperties;
+				} else {
+					el.css( startProperties );
 				}
 				
-				startTextAnim( el, opt, animate, next );
-			} );
-		},
-		
-		type: function ( o ) {
-			return this.queue( function( next ) {
-				var el = $( this ),
-					opt = textOptions( el, o );
-					
-				function animate ( interval, duration, i, wordCount, parentCoords, callback ) {
-					var el = $( this ),
-						delay = opt.show ? 
-								( interval * i ) : 
-								( wordCount - i - 1 ) * interval,
-						randomDelay = 0;
-					
-					/** TODO: Should the show not be removed here? **/
-					if ( opt.random !== false && opt.show ) {
-						randomDelay = ( Math.random() * text.length * interval ) * interval;
-						
-						/* The higher the random % the slower */
-						delay = (randomDelay / (2 - opt.random)) + opt.wordDelay;
-						opt.wordDelay = delay;
-					}
-						
-					if ( opt.show ) { 
-						el.css( 'opacity', 0 ); 
-					}
-					/** TODO: Should we make a not editable speed like in the examples **/
-					el.delay( delay ).animate( { opacity: opt.show }, duration, opt.easing, callback );
-				}
+				/** TODO: Settimeout bug.. find someway to get around this. **/
+				setTimeout( function () {
+					el.css( 'position', 'absolute' )
+				}, 10 );
 				
-				startTextAnim( el, opt, animate, next );				
-			} );
+				el.delay( delay ).animate( properties, duration, opt.easing, callback );
+			}
+			
+			startTextAnim( el, opt, animate, done );
 		},
 		
-		build: function ( o ) {
-			return this.queue( function( next ) {
+	type: function ( o, done ) {
+			var el = $( this ),
+				opt = textOptions( el, o );
+				
+			function animate ( interval, duration, i, wordCount, parentCoords, callback ) {
 				var el = $( this ),
-					opt = textOptions( el, o );
-				function animate(interval, duration, i, wordCount, parentCoords, callback){
-					var el = $( this ),
-						offset = el.offset(), 
-						width = el.outerWidth(), height = this.outerHeight(), properties = {}, /* max top */
-					mTop = docHeight - height, /* max left */
-					mLeft = docWidth - width;
+					delay = opt.show ? 
+							( interval * i ) : 
+							( wordCount - i - 1 ) * interval,
+					randomDelay = 0;
+				
+				/** TODO: Should the show not be removed here? **/
+				if ( opt.random !== false && opt.show ) {
+					randomDelay = ( Math.random() * text.length * interval ) * interval;
 					
-					/* Hide or show the element according to what we're going to do */
-					this.css({
-						opacity: show ? 0 : 1
-					});
+					/* The higher the random % the slower */
+					delay = (randomDelay / (2 - opt.random)) + opt.wordDelay;
+					opt.wordDelay = delay;
+				}
 					
-					var top, left;
-					if (show) { /* we're going to build */
-						properties.top = offset.top;
-						properties.left = offset.left;
-						properties.opacity = 1;
-						if (o.direction.indexOf('top') !== -1) {
-							top = offset.top - parentCoords.height * o.distance;
-							
-							this.css('top', top < 0 ? 0 : top); // 1 = o.distance
-						}
-						else 
-							if (o.direction.indexOf('bottom') !== -1) {
-								top = offset.top + parentCoords.height * o.distance;
-								
-								this.css('top', top > mTop ? mTop : top); // 1 = o.distance
-							}
+				if ( opt.show ) { 
+					el.css( 'opacity', 0 ); 
+				}
+				/** TODO: Should we make a not editable speed like in the examples **/
+				el.delay( delay ).animate( { opacity: opt.show }, duration, opt.easing, callback );
+			}
+			
+			startTextAnim( el, opt, animate, done );
+		},
+		
+		build: function ( o, done ) {
+			var el = $( this ),
+				opt = textOptions( el, o );
+				
+			function animate( interval, duration, i, wordCount, parentCoords, callback ) {
+				var el = $( this ),
+					offset = el.offset(), 
+					width = el.outerWidth(), 
+					height = el.outerHeight(), 
+					properties = {}, 
+					mTop = docHeight - height, /* max top */
+					mLeft = docWidth - width,  /* max left */
+					top, left;
+				
+				/* Hide or show the element according to what we're going to do */
+				this.css( {
+					opacity: show ? 0 : 1
+				} );
+				
+				if ( opt.show ) { /* we're going to build */
+					properties.top = offset.top;
+					properties.left = offset.left;
+					properties.opacity = 1;
+					if ( o.direction.indexOf('top') !== -1 ) {
+						top = offset.top - parentCoords.height * o.distance;
 						
-						if (o.direction.indexOf('left') !== -1) {
-							left = offset.left - parentCoords.width * o.distance;
-							
-							this.css('left', left < 0 ? 0 : left); // 1 = o.distance
-						}
-						else 
-							if (o.direction.indexOf('right') !== -1) {
-								left = offset.left + parentCoords.width * o.distance;
-								
-								this.css('left', left > mLeft ? mLeft : left); // 1 = o.distance
-							}
-						
-					}
-					else { /* We're going to disintegrate */
+						this.css('top', top < 0 ? 0 : top); // 1 = o.distance
+					} else 
 						if (o.direction.indexOf('bottom') !== -1) {
 							top = offset.top + parentCoords.height * o.distance;
 							
-							properties.top = top > mTop ? mTop : top; // 1 = o.distance
+							this.css('top', top > mTop ? mTop : top); // 1 = o.distance
 						}
-						else 
-							if (o.direction.indexOf('top') !== -1) {
-								var top = offset.top - parentCoords.height * o.distance
-								
-								properties.top = top < 0 ? 0 : top; // 1 = o.distance
-							}
+					
+					if (o.direction.indexOf('left') !== -1) {
+						left = offset.left - parentCoords.width * o.distance;
 						
+						this.css('left', left < 0 ? 0 : left); // 1 = o.distance
+					}
+					else 
 						if (o.direction.indexOf('right') !== -1) {
 							left = offset.left + parentCoords.width * o.distance;
 							
-							properties.left = left > mLeft ? mLeft : left; // 1 = o.distance
+							this.css('left', left > mLeft ? mLeft : left); // 1 = o.distance
 						}
-						else 
-							if (o.direction.indexOf('left') !== -1) {
-								left = offset.left - parentCoords.width * o.distance;
-								
-								properties.left = left < 0 ? 0 : left; // 1 = o.distance
-							}
-						properties.opacity = 0;
-					}
 					
-					/* default delay */
-					var delay = interval * i;
-					
-					/*
-	 Randomize delay if necessary
-	 Note, reverse doesn't really matter at this time
-	 */
-					if (o.random !== false) {
-					
-						var randomDelay = Math.random() * wordCount * interval,  /* If interval or random is negative, start from the bottom instead of top */
-						uniformDelay = o.reverse ? ((wordCount - i) * interval) : (i * interval);
+				} else { /* We're going to disintegrate */
+					if (o.direction.indexOf('bottom') !== -1) {
+						top = offset.top + parentCoords.height * o.distance;
 						
-						delay = randomDelay * o.random + Math.max(1 - o.random, 0) * uniformDelay;
+						properties.top = top > mTop ? mTop : top; // 1 = o.distance
 					}
+					else 
+						if (o.direction.indexOf('top') !== -1) {
+							var top = offset.top - parentCoords.height * o.distance
+							
+							properties.top = top < 0 ? 0 : top; // 1 = o.distance
+						}
 					
-					
-					/* run it */
-					this.delay(delay + 10 /* fixes stuff in chrome*/).animate(properties, duration, o.easing);
+					if (o.direction.indexOf('right') !== -1) {
+						left = offset.left + parentCoords.width * o.distance;
+						
+						properties.left = left > mLeft ? mLeft : left; // 1 = o.distance
+					}
+					else 
+						if (o.direction.indexOf('left') !== -1) {
+							left = offset.left - parentCoords.width * o.distance;
+							
+							properties.left = left < 0 ? 0 : left; // 1 = o.distance
+						}
+					properties.opacity = 0;
 				}
-				startTextAnim( el, opt, animate, next );
-			} );
+				
+				/* default delay */
+				var delay = interval * i;
+				
+				/*
+ Randomize delay if necessary
+ Note, reverse doesn't really matter at this time
+ */
+				if (o.random !== false) {
+				
+					var randomDelay = Math.random() * wordCount * interval,  /* If interval or random is negative, start from the bottom instead of top */
+					uniformDelay = o.reverse ? ((wordCount - i) * interval) : (i * interval);
+					
+					delay = randomDelay * o.random + Math.max(1 - o.random, 0) * uniformDelay;
+				}
+				
+				
+				/* run it */
+				this.delay(delay + 10 /* fixes stuff in chrome*/).animate(properties, duration, o.easing);
+			}
+			startTextAnim( el, opt, animate, done );
 		},
 		
-		blockfade: function ( o ) {
-			return this.queue( function( next ) {
+		blockfade: function ( o, done ) {
+			var el = $( this ),
+				opt = textOptions( el, o );
+			function animate( interval, duration, i, wordCount, parentCoords, callback ){
 				var el = $( this ),
-					opt = textOptions( el, o );
-				function animate( interval, duration, i, wordCount, parentCoords, callback ){
-					var el = $( this ),
-						delay = interval * i,
-						randomDelay = 0, 
-						uniformDelay = 0;
-						
-					if ( opt.random !== false ) {
-						randomDelay = Math.random() * wordCount * interval;
-						
-						/* If interval or random is negative, start from the bottom instead of top */
-						if ( opt.reverse ) {
-							uniformDelay = ( wordCount - i ) * interval;
-						} else {
-							uniformDelay = i * interval; 
-						}
-		
-						delay = randomDelay * opt.random + Math.max( 1 - opt.random, 0 ) * uniformDelay;
+					delay = interval * i,
+					randomDelay = 0, 
+					uniformDelay = 0;
+					
+				if ( opt.random !== false ) {
+					randomDelay = Math.random() * wordCount * interval;
+					
+					/* If interval or random is negative, start from the bottom instead of top */
+					if ( opt.reverse ) {
+						uniformDelay = ( wordCount - i ) * interval;
+					} else {
+						uniformDelay = i * interval; 
 					}
-		
-					/* run it */
-					el.delay( delay ).animate( { opacity: opt.show }, duration, opt.easing, callback );
-				};
-				
-				startTextAnim( el, opt, animate, next );	
-			} );
+	
+					delay = randomDelay * opt.random + Math.max( 1 - opt.random, 0 ) * uniformDelay;
+				}
+	
+				/* run it */
+				el.delay( delay ).animate( { opacity: opt.show }, duration, opt.easing, callback );
+			};
+			
+			startTextAnim( el, opt, animate, done );
 		},
 		
 		
