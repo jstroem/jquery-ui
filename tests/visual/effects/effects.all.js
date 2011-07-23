@@ -18,18 +18,36 @@ $(function() {
 			easing: "easeOutQuint"
 		});
 		
-		el = $( el );
+		$(el).bind("click", function() {
+			if ( text ) {
+				$(this).addClass("current")	
+					// delaying the initial animation makes sure that the queue stays in tact
+					.delay(10)
+					.hideText( n, o, duration )
+					.delay(wait)
+					.showText( n, o, duration, function(){
+							$( this ).removeClass( "current" );
+					});
+			} else {
+				$(this).addClass("current")	
+					// delaying the initial animation makes sure that the queue stays in tact
+					.delay(10)
+					.hide(n, o, duration)
+					.delay(wait)
+					.show(n, o, duration, function(){
+						$(this).removeClass("current");
+				});
+			}
+		});
 		
-		el.bind("click", function() {
-			el.addClass("current");
-			effect.call( el,  n, $.extend( o, { mode: 'hide' } ), duration, function() {
-				window.setTimeout( function() {
-					effect.call( el, n, $.extend( o, { mode: 'show' } ), duration, function() { 
-						el.removeClass("current"); 
-					} );
-				}, wait );
-			} );
-		} );
+		$("#hide").click( function() {
+			var el = $(this);
+			el.addClass("current").hide(duration, function() {
+				setTimeout(function() {
+					el.show(duration, function() { el.removeClass("current"); });
+				}, wait);
+			});
+		});
 
 	};
 	

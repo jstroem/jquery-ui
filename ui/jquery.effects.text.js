@@ -21,10 +21,11 @@
 				effectMethod = $.effects.text[ args.effect ],
 	
 				// DEPRECATED: remove in 2.0 (#7115)
-				oldEffectMethod = !effectMethod && backCompat && $.effects[ args.effect ];
-	
+				oldEffectMethod = !effectMethod && backCompat && $.effects.text[ args.effect ];
+				
 			if ( $.fx.off || !( effectMethod || oldEffectMethod ) ) {
 				// delegate to the original method (e.g., .show()) if possible
+				console.log(mode);
 				if ( mode ) {
 					return this[ mode ]( args.duration, args.complete );
 				} else {
@@ -52,7 +53,7 @@
 	
 				// if the element is hiddden and mode is hide,
 				// or element is visible and mode is show
-				if ( elem.is( ":hidden" ) ? mode === "hide" : mode === "show" ) {
+				if ( elem.is( ":empty" ) ? mode === "hide" : mode === "show" ) {
 					done();
 				} else {
 					effectMethod.call( elem[0], args, done );
@@ -62,6 +63,7 @@
 			// TODO: remove this check in 2.0, effectMethod will always be true
 			if ( effectMethod ) {
 				return queue === false ? this.each( run ) : this.queue( queue || "fx", run );
+				
 			} else {
 				// DEPRECATED: remove in 2.0 (#7115)
 				return oldEffectMethod.call(this, {
@@ -121,11 +123,11 @@
 		/* If animation is hiding then take the text from o.text or el.data( 'ui-hidden-text' ) */
 		if ( o.show ) {
 			orgHtml = o.text || el.data( "ui-hidden-text" ) || "";
-			el.html ( o.text || el.data( "ui-hidden-text" ) || "" );
+			el.html ( orgHtml );
 		} else {
 			/* If showing then save the html in el.data( 'ui-hidden-text' ) */
 			orgHtml = el.html();
-			el.data( "ui-hidden-text", el.html( ) );
+			el.data( "ui-hidden-text", orgHtml );
 		}
 
 		/* Set the current text to use */
