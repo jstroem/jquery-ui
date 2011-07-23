@@ -16,7 +16,7 @@
 	//Creating object for helper functions
 	$.effects.split = {
 		//Helper function to control the split on each animation
-		startAnim: function(el, o, animation, next) {
+		startAnim: function( el, o, animation, done ) {
 		
 			//Support for pieces
 			if ( ( !o.rows || !o.columns ) && o.pieces ) {
@@ -74,11 +74,12 @@
 				}
 				
 				container.remove( );
-				
+				/*
 				if ( $.isFunction( o.complete ) ) {
 					o.complete.apply( el[ 0 ] );
 				}
-				next();
+				next();*/
+				done();
 			}
 			
 			//Make animation
