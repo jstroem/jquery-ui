@@ -229,14 +229,14 @@
 					properties.top = startProperties.top - distanceY * distance + distanceXY * randomY;
 					properties.left = startProperties.left - distanceX * distance + distanceXY * randomX;
 		
-					/** TODO: Removed the docheight/width functionallity
+					/** TODO: Removed the docheight functionallity
 					 if (offsetTo.top > (docHeight - height)) {
 						offsetTo.top = docHeight - height;
 						*/
 					if ( properties.top < 0 ) {
 						properties.top = 0;
 					}
-		
+					/** TODO: Removed the docwidth functionallity
 					/*if (offsetTo.left > (docWidth - width)) {
 						offsetTo.left = docWidth - width;
 					} else */
@@ -297,6 +297,97 @@
 		
 		build: function ( o ) {
 			return this.queue( function( next ) {
+				var el = $( this ),
+					opt = textOptions( el, o );
+				function animate(interval, duration, i, wordCount, parentCoords, callback){
+					var el = $( this ),
+						offset = el.offset(), 
+						width = el.outerWidth(), height = this.outerHeight(), properties = {}, /* max top */
+					mTop = docHeight - height, /* max left */
+					mLeft = docWidth - width;
+					
+					/* Hide or show the element according to what we're going to do */
+					this.css({
+						opacity: show ? 0 : 1
+					});
+					
+					var top, left;
+					if (show) { /* we're going to build */
+						properties.top = offset.top;
+						properties.left = offset.left;
+						properties.opacity = 1;
+						if (o.direction.indexOf('top') !== -1) {
+							top = offset.top - parentCoords.height * o.distance;
+							
+							this.css('top', top < 0 ? 0 : top); // 1 = o.distance
+						}
+						else 
+							if (o.direction.indexOf('bottom') !== -1) {
+								top = offset.top + parentCoords.height * o.distance;
+								
+								this.css('top', top > mTop ? mTop : top); // 1 = o.distance
+							}
+						
+						if (o.direction.indexOf('left') !== -1) {
+							left = offset.left - parentCoords.width * o.distance;
+							
+							this.css('left', left < 0 ? 0 : left); // 1 = o.distance
+						}
+						else 
+							if (o.direction.indexOf('right') !== -1) {
+								left = offset.left + parentCoords.width * o.distance;
+								
+								this.css('left', left > mLeft ? mLeft : left); // 1 = o.distance
+							}
+						
+					}
+					else { /* We're going to disintegrate */
+						if (o.direction.indexOf('bottom') !== -1) {
+							top = offset.top + parentCoords.height * o.distance;
+							
+							properties.top = top > mTop ? mTop : top; // 1 = o.distance
+						}
+						else 
+							if (o.direction.indexOf('top') !== -1) {
+								var top = offset.top - parentCoords.height * o.distance
+								
+								properties.top = top < 0 ? 0 : top; // 1 = o.distance
+							}
+						
+						if (o.direction.indexOf('right') !== -1) {
+							left = offset.left + parentCoords.width * o.distance;
+							
+							properties.left = left > mLeft ? mLeft : left; // 1 = o.distance
+						}
+						else 
+							if (o.direction.indexOf('left') !== -1) {
+								left = offset.left - parentCoords.width * o.distance;
+								
+								properties.left = left < 0 ? 0 : left; // 1 = o.distance
+							}
+						properties.opacity = 0;
+					}
+					
+					/* default delay */
+					var delay = interval * i;
+					
+					/*
+	 Randomize delay if necessary
+	 Note, reverse doesn't really matter at this time
+	 */
+					if (o.random !== false) {
+					
+						var randomDelay = Math.random() * wordCount * interval,  /* If interval or random is negative, start from the bottom instead of top */
+						uniformDelay = o.reverse ? ((wordCount - i) * interval) : (i * interval);
+						
+						delay = randomDelay * o.random + Math.max(1 - o.random, 0) * uniformDelay;
+					}
+					
+					
+					/* run it */
+					this.delay(delay + 10 /* fixes stuff in chrome*/).animate(properties, duration, o.easing);
+				}
+				startTextAnim( el, opt, animate, next );
 			} );
 		},
 		
