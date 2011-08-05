@@ -239,7 +239,7 @@
 					startProperties = el.offset(),
 					width = el.outerWidth(),
 					height = el.outerHeight(),
-					properties = {
+						properties = {
 						opacity: 0
 					},
 					distance = opt.distance * 2,
@@ -303,7 +303,7 @@
 			startTextAnim( el, opt, animate, done );
 		},
 		
-	type: function ( o, done ) {
+		type: function ( o, done ) {
 			var el = $( this ),
 				opt = textOptions( el, o );
 				
@@ -342,67 +342,78 @@
 					offset = el.offset(), 
 					width = el.outerWidth(), 
 					height = el.outerHeight(), 
-					properties = {}, 
-					mTop = docHeight - height, /* max top */
-					mLeft = docWidth - width,  /* max left */
+					properties = {},
 					top, left;
 				
 				/* Hide or show the element according to what we're going to do */
-				this.css( {
-					opacity: show ? 0 : 1
+				el.css( {
+					opacity: opt.show ? 0 : 1
 				} );
 				
 				if ( opt.show ) { /* we're going to build */
 					properties.top = offset.top;
 					properties.left = offset.left;
 					properties.opacity = 1;
-					if ( o.direction.indexOf('top') !== -1 ) {
-						top = offset.top - parentCoords.height * o.distance;
-						
-						this.css('top', top < 0 ? 0 : top); // 1 = o.distance
-					} else 
-						if (o.direction.indexOf('bottom') !== -1) {
-							top = offset.top + parentCoords.height * o.distance;
-							
-							this.css('top', top > mTop ? mTop : top); // 1 = o.distance
+					if ( opt.direction.indexOf('top') !== -1 ) {
+						top = offset.top - parentCoords.height * opt.distance;
+						el.css('top', top < 0 ? 0 : top); // 1 = o.distance
+					} else if ( opt.direction.indexOf('bottom') !== -1 ) {
+						top = offset.top + parentCoords.height * opt.distance;
+						/** TODO: choose if docHeight should be used 
+						if ( top > docHeight - height ) {
+							el.css( 'top', docHeight - height );
+						} else {
+							el.css( 'top', top );
 						}
-					
-					if (o.direction.indexOf('left') !== -1) {
-						left = offset.left - parentCoords.width * o.distance;
-						
-						this.css('left', left < 0 ? 0 : left); // 1 = o.distance
+						**/
+						el.css( 'top', top );
 					}
-					else 
-						if (o.direction.indexOf('right') !== -1) {
-							left = offset.left + parentCoords.width * o.distance;
-							
-							this.css('left', left > mLeft ? mLeft : left); // 1 = o.distance
+					
+					if ( opt.direction.indexOf('left') !== -1 ) {
+						left = offset.left - parentCoords.width * opt.distance;
+						el.css('left', left < 0 ? 0 : left); // 1 = o.distance
+					} else if (o.direction.indexOf('right') !== -1) {
+						left = offset.left + parentCoords.width * opt.distance;
+						/** TODO: choose if docWidth should be used
+						if ( left > docWidth - width ) {
+							el.css( 'left', docWidth - width );
+						} else {
+							el.css( 'left', left );
 						}
+						**/
+						el.css( 'left', left );
+					}
 					
 				} else { /* We're going to disintegrate */
-					if (o.direction.indexOf('bottom') !== -1) {
-						top = offset.top + parentCoords.height * o.distance;
-						
-						properties.top = top > mTop ? mTop : top; // 1 = o.distance
-					}
-					else 
-						if (o.direction.indexOf('top') !== -1) {
-							var top = offset.top - parentCoords.height * o.distance
-							
-							properties.top = top < 0 ? 0 : top; // 1 = o.distance
+					if ( opt.direction.indexOf('bottom') !== -1 ) {
+						top = offset.top + parentCoords.height * opt.distance;
+						/** TODO: choose if docHeight should be used 
+						if ( top > docHeight - height ) {
+							properties.top = docHeight - height;
+						} else {
+							properties.top = top;
 						}
+						**/
+						properties.top = top;
+					} else if ( opt.direction.indexOf('top') !== -1 ) {
+						top = offset.top - parentCoords.height * opt.distance;
+						properties.top = top < 0 ? 0 : top; // 1 = o.distance
+					}
 					
-					if (o.direction.indexOf('right') !== -1) {
-						left = offset.left + parentCoords.width * o.distance;
-						
-						properties.left = left > mLeft ? mLeft : left; // 1 = o.distance
-					}
-					else 
-						if (o.direction.indexOf('left') !== -1) {
-							left = offset.left - parentCoords.width * o.distance;
-							
-							properties.left = left < 0 ? 0 : left; // 1 = o.distance
+					if ( opt.direction.indexOf('right') !== -1 ) {
+						left = offset.left + parentCoords.width * opt.distance;
+						/** TODO: choose if docWidht should be used 
+						if ( left > docWidth - width ) {
+							properties.left = docWidth - width; 
+						} else {
+							properties.left = left;
 						}
+						**/
+						properties.left = left;
+					} else if ( opt.direction.indexOf('left') !== -1 ) {
+						left = offset.left - parentCoords.width * opt.distance;
+						properties.left = left < 0 ? 0 : left; // 1 = o.distance
+					}
 					properties.opacity = 0;
 				}
 				
@@ -410,20 +421,19 @@
 				var delay = interval * i;
 				
 				/*
- Randomize delay if necessary
- Note, reverse doesn't really matter at this time
- */
-				if (o.random !== false) {
-				
-					var randomDelay = Math.random() * wordCount * interval,  /* If interval or random is negative, start from the bottom instead of top */
-					uniformDelay = o.reverse ? ((wordCount - i) * interval) : (i * interval);
-					
-					delay = randomDelay * o.random + Math.max(1 - o.random, 0) * uniformDelay;
+				 Randomize delay if necessary
+				 Note, reverse doesn't really matter at this time
+				 */
+				if ( opt.random !== false ) {
+					var randomDelay = Math.random() * wordCount * interval,
+						/* If interval or random is negative, start from the bottom instead of top */
+						uniformDelay = opt.reverse ? ( (wordCount - i ) * interval) : ( i * interval );
+						
+					delay = randomDelay * opt.random + Math.max( 1 - opt.random, 0 ) * uniformDelay;
 				}
 				
-				
 				/* run it */
-				this.delay(delay + 10 /* fixes stuff in chrome*/).animate(properties, duration, o.easing);
+				el.delay( delay + 10  /* fixes stuff in chrome*/ ).animate( properties, duration, opt.easing, callback );
 			}
 			startTextAnim( el, opt, animate, done );
 		},
@@ -431,6 +441,7 @@
 		blockfade: function ( o, done ) {
 			var el = $( this ),
 				opt = textOptions( el, o );
+				
 			function animate( interval, duration, i, wordCount, parentCoords, callback ){
 				var el = $( this ),
 					delay = interval * i,
