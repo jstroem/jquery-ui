@@ -25,7 +25,6 @@
 				
 			if ( $.fx.off || !( effectMethod || oldEffectMethod ) ) {
 				// delegate to the original method (e.g., .show()) if possible
-				console.log(mode);
 				if ( mode ) {
 					return this[ mode ]( args.duration, args.complete );
 				} else {
