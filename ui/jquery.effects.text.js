@@ -15,7 +15,7 @@
 	//Extend the $.fn with text methods.
 	$.fn.extend({
 		textEffect: function( effect, options, speed, callback ) {
-			var args = $.effects.normalizeArguments.apply( this, arguments ),
+					var args = $.effects.normalizeArguments.apply( this, arguments ),
 				mode = args.mode,
 				queue = args.queue,
 				effectMethod = $.effects.text[ args.effect ],
@@ -101,7 +101,7 @@
 	 *	o.duration
 	 * 	o.reverse
 	 */
-	function startTextAnim( el, o, animation, done ) {
+	function startTextAnim( el, o, animation, done, before ) {
 		/*	The following regular expression courtesy of Phil Haack
 			http://haacked.com/archive/2004/10/25/usingregularexpressionstomatchhtml.aspx
 		*/
@@ -202,6 +202,7 @@
 		/* Iterate over all the elements run their animation function on it */
 		for ( i = 0, l = set.length; i < l; i++ ) {
 			var $word = $( set[ i ] );
+		
 			/*	Call the animation per element
 				This way each method can define it's manipulation per element
 			*/
@@ -292,6 +293,7 @@
 					el.css( startProperties );
 				}
 				
+				
 				/** TODO: Settimeout bug.. find someway to get around this. **/
 				setTimeout( function () {
 					el.css( 'position', 'absolute' )
@@ -372,7 +374,7 @@
 					if ( opt.direction.indexOf('left') !== -1 ) {
 						left = offset.left - parentCoords.width * opt.distance;
 						el.css('left', left < 0 ? 0 : left); // 1 = o.distance
-					} else if (o.direction.indexOf('right') !== -1) {
+					} else if (opt.direction.indexOf('right') !== -1) {
 						left = offset.left + parentCoords.width * opt.distance;
 						/** TODO: choose if docWidth should be used
 						if ( left > docWidth - width ) {
@@ -433,7 +435,7 @@
 				}
 				
 				/* run it */
-				el.delay( delay + 10  /* fixes stuff in chrome*/ ).animate( properties, duration, opt.easing, callback );
+				el.delay( delay ).animate( properties, duration, opt.easing, callback );
 			}
 			startTextAnim( el, opt, animate, done );
 		},
@@ -459,6 +461,10 @@
 					}
 	
 					delay = randomDelay * opt.random + Math.max( 1 - opt.random, 0 ) * uniformDelay;
+				}
+				
+				if ( opt.show ) {
+					el.css( 'opacity', 0 ); 
 				}
 	
 				/* run it */
@@ -496,16 +502,7 @@
 	
 			/* Set the current position of the element */
 			var $this = this.css(this.offset());
-			/*
-				Have to find out why this happends,
-				just doing this.css ('position', 'absolute') doesn't work >:-[
-				So we use this work around
-			*/
-			setTimeout(
-	
-			function () {
-				$this.css('position', 'absolute');
-			}, 10);
+			$this.css('position', 'absolute');
 	
 		}
 	
@@ -672,7 +669,6 @@
 		show = show ? 1 : 0;
 	
 		/* Internal callback to run before animation has started */
-	
 		function beforeAnimate() {
 	
 			/* Set the current position of the element */
